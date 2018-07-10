@@ -168,8 +168,6 @@ def caffe2darknet(protofile, caffemodel):
                 else:
                     con = '{},{}'.format(con, layer_id[colayer]-len(blocks))
 
-            print("debug {}".format(con))
-
             block = OrderedDict()
             block['type'] = 'route'
             block['layers'] = con
