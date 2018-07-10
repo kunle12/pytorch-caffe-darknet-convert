@@ -58,7 +58,10 @@ def caffe2darknet(protofile, caffemodel):
             block['type'] = 'convolutional'
             block['filters'] = conv_layer['convolution_param']['num_output']
             block['size'] = conv_layer['convolution_param']['kernel_size']
-            block['stride'] = conv_layer['convolution_param']['stride']
+            if 'stride' in conv_layer['convolution_param']:
+                block['stride'] = conv_layer['convolution_param']['stride']
+            else:
+                block['stride'] = 1
             block['pad'] = '1'
             last_layer = conv_layer 
             m_conv_layer = lmap[conv_layer['name']] 
@@ -152,6 +155,24 @@ def caffe2darknet(protofile, caffemodel):
             block = OrderedDict()
             block['type'] = 'softmax'
             block['groups'] = 1
+            top = layer['top']
+            layer_id[top] = len(blocks)
+            blocks.append(block)
+            i = i + 1
+        elif layer['type'] == 'Concat':
+            con = None
+            for colayer in layer['bottom']:
+                assert(layer_id[colayer] <= len(blocks)-1)
+                if con is None:
+                    con = '{}'.format(layer_id[colayer]-len(blocks))
+                else:
+                    con = '{},{}'.format(con, layer_id[colayer]-len(blocks))
+
+            print("debug {}".format(con))
+
+            block = OrderedDict()
+            block['type'] = 'route'
+            block['layers'] = con
             top = layer['top']
             layer_id[top] = len(blocks)
             blocks.append(block)
